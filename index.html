@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MHPlanner+ - Manhour Resources Planning Tool</title>
+    <style>
+        :root {
+            --color-bg-primary: #f8fafc;
+            --color-bg-secondary: #ffffff;
+            --color-text-primary: #1e293b;
+            --color-text-secondary: #64748b;
+            --color-primary: #0284c7;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-caution: #eab308;
+            --color-error: #ef4444;
+            --color-border: #e2e8f0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-bg-primary: #0f172a;
+                --color-bg-secondary: #1e293b;
+                --color-text-primary: #f1f5f9;
+                --color-text-secondary: #94a3b8;
+                --color-border: #334155;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--color-bg-secondary);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: var(--color-primary);
+        }
+
+        .header-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .header-info div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-info label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .header-info input, .header-info select {
+            padding: 8px 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: var(--color-bg-secondary);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .tab.active {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--color-bg-secondary);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media print {
+            header,
+            .tabs,
+            .action-buttons,
+            .print-hide {
+                display: none !important;
+            }
+
+            .tab-content {
+                display: none !important;
+            }
+
+            #dashboard,
+            #qualified,
+            #admin,
+            #report {
+                display: block !important;
+            }
+
+            #home,
+            #guide,
+            #support,
+            #about {
+                display: none !important;
+            }
+
+            body {
+                background: #ffffff;
+                color: #000000;
+                padding: 0;
+            }
+
+            .tab-content {
+                box-shadow: none;
+                padding: 0;
+            }
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: var(--color-bg-primary);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .kpi-card.critical {
+            border-left-color: var(--color-error);
+        }
+
+        .kpi-card.warning {
+            border-left-color: var(--color-warning);
+        }
+
+        .kpi-card.caution {
+            border-left-color: var(--color-caution);
+        }
+
+        .kpi-card.ok {
+            border-left-color: var(--color-success);
+        }
+
+        .kpi-label {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .kpi-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .kpi-status.critical {
+            background: var(--color-error);
+            color: white;
+        }
+
+        .kpi-status.warning {
+            background: var(--color-warning);
+            color: white;
+        }
+
+        .kpi-status.caution {
+            background: var(--color-caution);
+            color: #000;
+        }
+
+        .kpi-status.ok {
+            background: var(--color-success);
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        th {
+            background: var(--color-bg-primary);
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+        }
+
+        td input {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            font-size: 13px;
+        }
+
+        td input:focus {
+            outline: 2px solid var(--color-primary);
+        }
+
+        .calculated {
+            background: var(--color-bg-primary);
+            font-weight: 500;
+        }
+
+        .section-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 30px 0 15px 0;
+            color: var(--color-primary);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        button.secondary {
+            background: var(--color-text-secondary);
+        }
+
+        .alert-box {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+
+        .alert-box.critical {
+            background: #fee;
+            border-left: 4px solid var(--color-error);
+            color: #7f1d1d;
+        }
+
+        .alert-box.warning {
+            background: #fef3c7;
+            border-left: 4px solid var(--color-warning);
+            color: #78350f;
+        }
+
+        .alert-box.ok {
+            background: #d1fae5;
+            border-left: 4px solid var(--color-success);
+            color: #065f46;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-card {
+            background: var(--color-bg-primary);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .summary-card h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--color-primary);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .add-row-btn {
+            background: var(--color-success);
+            padding: 8px 16px;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .delete-row-btn {
+            background: var(--color-error);
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        @media print {
+            .tabs, .action-buttons, button {
+                display: none;
+            }
+            .tab-content {
+                display: block !important;
+                page-break-after: always;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--color-bg-secondary);
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--color-primary);
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px 20px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-input-label:hover {
+            opacity: 0.9;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .legend {
+            background: var(--color-bg-primary);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .scroll-table {
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+                <img src="kuwait-airways-logo.png" alt="Kuwait Airways" style="height: 70px;">
+                <div style="flex: 1;">
+                    <h1>MHPlanner+</h1>
+                    <p style="color: var(--color-text-secondary); margin-top: 5px;">Manhour Resources Planning Tool</p>
+                </div>
+                <img src="mhplanner-logo.png" alt="MHPlanner+" style="height: 80px;">
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('home')">🏠 Home</button>
+            <button class="tab" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="tab" onclick="switchTab('qualified')">👨‍✈️ Qualified Staff</button>
+            <button class="tab" onclick="switchTab('admin')">🔧 Admin & Mechanics</button>
+            <button class="tab" onclick="switchTab('report')">📄 Report</button>
+            <button class="tab" onclick="switchTab('guide')">📖 User Guide</button>
+            <button class="tab" onclick="switchTab('support')">📞 Support</button>
+            <button class="tab" onclick="switchTab('about')">ℹ️ About</button>
+        </div>
+
+        <div id="plan-header" class="header-info" style="display: none;">
+            <div>
+                <label>Section/Station</label>
+                <input type="text" id="section" value="Line Maintenance - KWI">
+            </div>
+            <div>
+                <label>Manager Name</label>
+                <input type="text" id="manager" value="John Doe">
+            </div>
+            <div>
+                <label>Quarter</label>
+                <select id="quarter">
+                    <option value="Q1" selected>Q1</option>
+                    <option value="Q2">Q2</option>
+                    <option value="Q3">Q3</option>
+                    <option value="Q4">Q4</option>
+                </select>
+            </div>
+            <div>
+                <label>Year</label>
+                <input type="number" id="year" value="2026" min="2024" max="2030">
+            </div>
+        </div>
+
+        <!-- Home Tab -->
+        <div id="home" class="tab-content active">
+            <div style="display: flex; justify-content: center; margin: 10px 0 25px 0;">
+                <img src="mhplanner-logo.png" alt="MHPlanner+" style="height: 420px;">
+            </div>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">Overview</h3>
+                <p>MHPlanner+ is the Kuwait Airways manhour planning and compliance support tool. It helps teams plan qualified staff and support staff resources, forecast required hours, and generate an executive report for approval and recordkeeping.</p>
+            </div>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">Quick Start</h3>
+                <p>1. Enter qualified staff resources and working days.</p>
+                <p>2. Enter admin/support staff resources and working days.</p>
+                <p>3. Add tasks with required hours and monthly frequency.</p>
+                <p>4. Review variance and capacity on Dashboard and Report tabs.</p>
+                <p>5. Print the report, sign it, and file it for records.</p>
+                <p>6. If required by thresholds, submit the report to the responsible authority.</p>
+            </div>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">Workflow Diagram</h3>
+                <div class="mermaid">
+                    flowchart TD
+                        A["Add qualified staff (counts, shifts, days)"] --> B["Add support staff (counts, shifts, days)"]
+                        B --> C["Add task lists and required hours"]
+                        C --> D["Review KPIs and variance"]
+                        D --> E["Generate report"]
+                        E --> F["Print report"]
+                        F --> G["Sign and keep in records"]
+                        D --> H["If required, report per compliance thresholds"]
+                </div>
+                <p style="margin-top: 10px; color: var(--color-text-secondary);">Tip: Use the Report tab for approvals and the Support tab for help if calculations need clarification.</p>
+            </div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content">
+            <h2 class="section-header">Key Performance Indicators</h2>
+            <div class="kpi-grid">
+                <div class="kpi-card" id="q-variance-card">
+                    <div class="kpi-label">Qualified Staff Variance</div>
+                    <div class="kpi-value" id="q-variance">-17.3%</div>
+                    <span class="kpi-status" id="q-status">WARNING</span>
+                </div>
+                <div class="kpi-card" id="a-variance-card">
+                    <div class="kpi-label">Admin/Mechanics Variance</div>
+                    <div class="kpi-value" id="a-variance">+3.2%</div>
+                    <span class="kpi-status" id="a-status">OK</span>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Qualified Staff</div>
+                    <div class="kpi-value" id="total-q-staff">19</div>
+                    <span style="font-size: 12px; color: var(--color-text-secondary);">Engineers & Inspectors</span>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Admin & Mechanics</div>
+                    <div class="kpi-value" id="total-a-staff">41</div>
+                    <span style="font-size: 12px; color: var(--color-text-secondary);">Support Staff</span>
+                </div>
+            </div>
+
+            <h2 class="section-header">Quarterly Summary</h2>
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <h3>Qualified Staff (Quarter)</h3>
+                    <div class="summary-row">
+                        <span>Net Available Hours:</span>
+                        <strong id="q-net-total">7,672</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Required Hours:</span>
+                        <strong id="q-req-total">9,276</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Variance:</span>
+                        <strong id="q-var-total" style="color: var(--color-error);">-1,604</strong>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <h3>Admin & Mechanics (Quarter)</h3>
+                    <div class="summary-row">
+                        <span>Net Available Hours:</span>
+                        <strong id="a-net-total">12,814</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Required Hours:</span>
+                        <strong id="a-req-total">12,411</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Variance:</span>
+                        <strong id="a-var-total" style="color: var(--color-success);">+403</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div id="alert-container"></div>
+
+            <div class="legend">
+                <h3 style="margin-bottom: 15px;">Status Legend</h3>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--color-error);"></div>
+                    <div>
+                        <strong>CRITICAL (&gt;25%)</strong> - Immediate action required. Notify QM and AM per MOE requirements.
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--color-warning);"></div>
+                    <div>
+                        <strong>WARNING (10-25%)</strong> - Plan mitigation: overtime, training, recruitment.
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--color-caution);"></div>
+                    <div>
+                        <strong>CAUTION (0-10%)</strong> - Monitor closely, prepare contingency plans.
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--color-success);"></div>
+                    <div>
+                        <strong>OK (Balanced/Surplus)</strong> - No action needed, maintain current levels.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Qualified Staff Tab -->
+        <div id="qualified" class="tab-content">
+            <h2 class="section-header">Qualified Staff Resource Planning</h2>
+            
+            <div class="scroll-table">
+                <table id="qualified-staff-table">
+                    <thead>
+                        <tr>
+                            <th>Unit Name</th>
+                            <th>Staff Count</th>
+                            <th>Shift Hrs/Day</th>
+                            <th>Days M1</th>
+                            <th>Days M2</th>
+                            <th>Days M3</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="qualified-resources">
+                    </tbody>
+                </table>
+            </div>
+            <button class="add-row-btn" onclick="addQualifiedRow()">+ Add Unit</button>
+
+            <h3 class="section-header">Loss of Manhour Resources</h3>
+            <div class="scroll-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Month 1</th>
+                            <th>Month 2</th>
+                            <th>Month 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Daily Break Time (Auto)</td>
+                            <td class="calculated" id="q-break-m1">627</td>
+                            <td class="calculated" id="q-break-m2">570</td>
+                            <td class="calculated" id="q-break-m3">627</td>
+                        </tr>
+                        <tr>
+                            <td>Sick Leave 2% (Auto)</td>
+                            <td class="calculated" id="q-sick-m1">70.4</td>
+                            <td class="calculated" id="q-sick-m2">64.0</td>
+                            <td class="calculated" id="q-sick-m3">70.4</td>
+                        </tr>
+                        <tr>
+                            <td>Planned Training (hrs)</td>
+                            <td><input type="number" id="q-train-m1" value="120" onchange="calculate()"></td>
+                            <td><input type="number" id="q-train-m2" value="160" onchange="calculate()"></td>
+                            <td><input type="number" id="q-train-m3" value="120" onchange="calculate()"></td>
+                        </tr>
+                        <tr>
+                            <td>Vacation (hrs)</td>
+                            <td><input type="number" id="q-vac-m1" value="60.6" onchange="calculate()"></td>
+                            <td><input type="number" id="q-vac-m2" value="18" onchange="calculate()"></td>
+                            <td><input type="number" id="q-vac-m3" value="60.6" onchange="calculate()"></td>
+                        </tr>
+                        <tr style="font-weight: 700; background: var(--color-bg-primary);">
+                            <td>NET AVAILABLE HOURS</td>
+                            <td class="calculated" id="q-net-m1">2,642</td>
+                            <td class="calculated" id="q-net-m2">2,388</td>
+                            <td class="calculated" id="q-net-m3">2,642</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="section-header">Forecasted Workload</h3>
+            <div class="scroll-table">
+                <table id="qualified-tasks-table">
+                    <thead>
+                        <tr>
+                            <th>Task Description</th>
+                            <th>Assigned Unit</th>
+                            <th>Hrs/Task</th>
+                            <th>Freq M1</th>
+                            <th>Freq M2</th>
+                            <th>Freq M3</th>
+                            <th>Req M1</th>
+                            <th>Req M2</th>
+                            <th>Req M3</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="qualified-tasks">
+                    </tbody>
+                </table>
+            </div>
+            <button class="add-row-btn" onclick="addQualifiedTask()">+ Add Task</button>
+
+            <div style="margin-top: 30px; padding: 20px; background: var(--color-bg-primary); border-radius: 10px;">
+                <h4 style="margin-bottom: 10px;">Variance Analysis</h4>
+                <table>
+                    <tr>
+                        <td><strong>Required Hours:</strong></td>
+                        <td class="calculated" id="q-req-m1">3,136</td>
+                        <td class="calculated" id="q-req-m2">2,849</td>
+                        <td class="calculated" id="q-req-m3">3,291</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Variance:</strong></td>
+                        <td class="calculated" id="q-var-m1">-494</td>
+                        <td class="calculated" id="q-var-m2">-461</td>
+                        <td class="calculated" id="q-var-m3">-649</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Variance %:</strong></td>
+                        <td class="calculated" id="q-pct-m1">-15.8%</td>
+                        <td class="calculated" id="q-pct-m2">-16.2%</td>
+                        <td class="calculated" id="q-pct-m3">-19.7%</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Admin & Mechanics Tab -->
+        <div id="admin" class="tab-content">
+            <h2 class="section-header">Admin Staff & Mechanics Resource Planning</h2>
+            
+            <div class="scroll-table">
+                <table id="admin-staff-table">
+                    <thead>
+                        <tr>
+                            <th>Unit Name</th>
+                            <th>Staff Count</th>
+                            <th>Shift Hrs/Day</th>
+                            <th>Days M1</th>
+                            <th>Days M2</th>
+                            <th>Days M3</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-resources">
+                    </tbody>
+                </table>
+            </div>
+            <button class="add-row-btn" onclick="addAdminRow()">+ Add Unit</button>
+
+            <h3 class="section-header">Loss of Manhour Resources</h3>
+            <div class="scroll-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Month 1</th>
+                            <th>Month 2</th>
+                            <th>Month 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Daily Break Time (Auto)</td>
+                            <td class="calculated" id="a-break-m1">1,023</td>
+                            <td class="calculated" id="a-break-m2">930</td>
+                            <td class="calculated" id="a-break-m3">1,023</td>
+                        </tr>
+                        <tr>
+                            <td>Sick Leave 2% (Auto)</td>
+                            <td class="calculated" id="a-sick-m1">116.2</td>
+                            <td class="calculated" id="a-sick-m2">105.6</td>
+                            <td class="calculated" id="a-sick-m3">116.2</td>
+                        </tr>
+                        <tr>
+                            <td>Planned Training (hrs)</td>
+                            <td><input type="number" id="a-train-m1" value="176" onchange="calculate()"></td>
+                            <td><input type="number" id="a-train-m2" value="200" onchange="calculate()"></td>
+                            <td><input type="number" id="a-train-m3" value="176" onchange="calculate()"></td>
+                        </tr>
+                        <tr>
+                            <td>Vacation (hrs)</td>
+                            <td><input type="number" id="a-vac-m1" value="80.84" onchange="calculate()"></td>
+                            <td><input type="number" id="a-vac-m2" value="54.4" onchange="calculate()"></td>
+                            <td><input type="number" id="a-vac-m3" value="80.84" onchange="calculate()"></td>
+                        </tr>
+                        <tr style="font-weight: 700; background: var(--color-bg-primary);">
+                            <td>NET AVAILABLE HOURS</td>
+                            <td class="calculated" id="a-net-m1">4,412</td>
+                            <td class="calculated" id="a-net-m2">3,990</td>
+                            <td class="calculated" id="a-net-m3">4,412</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="section-header">Forecasted Workload</h3>
+            <div class="scroll-table">
+                <table id="admin-tasks-table">
+                    <thead>
+                        <tr>
+                            <th>Task Description</th>
+                            <th>Assigned Unit</th>
+                            <th>Hrs/Task</th>
+                            <th>Freq M1</th>
+                            <th>Freq M2</th>
+                            <th>Freq M3</th>
+                            <th>Req M1</th>
+                            <th>Req M2</th>
+                            <th>Req M3</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-tasks">
+                    </tbody>
+                </table>
+            </div>
+            <button class="add-row-btn" onclick="addAdminTask()">+ Add Task</button>
+
+            <div style="margin-top: 30px; padding: 20px; background: var(--color-bg-primary); border-radius: 10px;">
+                <h4 style="margin-bottom: 10px;">Variance Analysis</h4>
+                <table>
+                    <tr>
+                        <td><strong>Required Hours:</strong></td>
+                        <td class="calculated" id="a-req-m1">4,200.5</td>
+                        <td class="calculated" id="a-req-m2">3,808</td>
+                        <td class="calculated" id="a-req-m3">4,402.5</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Variance:</strong></td>
+                        <td class="calculated" id="a-var-m1">+211.5</td>
+                        <td class="calculated" id="a-var-m2">+182</td>
+                        <td class="calculated" id="a-var-m3">+9.5</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Variance %:</strong></td>
+                        <td class="calculated" id="a-pct-m1">+5.0%</td>
+                        <td class="calculated" id="a-pct-m2">+4.8%</td>
+                        <td class="calculated" id="a-pct-m3">+0.2%</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Report Tab -->
+        <div id="report" class="tab-content">
+            <h2 class="section-header">Manhour Plan Executive Report</h2>
+            
+            <div style="background: var(--color-bg-primary); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                    <div><strong>Section/Station:</strong> <span id="rep-section"></span></div>
+                    <div><strong>Manager:</strong> <span id="rep-manager"></span></div>
+                    <div><strong>Period:</strong> <span id="rep-period"></span></div>
+                    <div><strong>Report Date:</strong> <span id="rep-date"></span></div>
+                </div>
+            </div>
+
+            <h3 style="color: var(--color-primary); margin: 20px 0 10px 0;">Overall Status</h3>
+            <div id="overall-status" class="alert-box"></div>
+
+            <h3 style="color: var(--color-primary); margin: 30px 0 10px 0;">Detailed Findings</h3>
+            <div id="detailed-findings"></div>
+
+            <h3 style="color: var(--color-primary); margin: 30px 0 10px 0;">Recommended Mitigation Actions</h3>
+            <div id="mitigation-actions"></div>
+
+            <div class="print-hide">
+                <h3 style="color: var(--color-primary); margin: 30px 0 10px 0;">Compliance Statement</h3>
+                <div style="background: var(--color-bg-primary); padding: 20px; border-radius: 10px;">
+                    <h4 style="margin-bottom: 15px;">📋 Compliance & Regulatory Framework</h4>
+                    <p style="margin-bottom: 10px;">This tool supports compliance with the following regulatory requirements:</p>
+                    <p>✓ <strong>Human factors limitations:</strong> 48-hour weekly maximum working hours</p>
+                    <p>✓ <strong>Part-145:</strong> Maintenance organization approval and continuing airworthiness requirements</p>
+                    <p>✓ <strong>Regulatory Compliance:</strong> Compliance with Kuwait DGCA, EASA, UK CAA and other regulatory authorities as applicable</p>
+                    <p>✓ <strong>MOE / CAME:</strong> Quarterly manhour planning review and escalation requirements</p>
+                    <p>✓ <strong>ICAO Standards:</strong> International aviation safety standards</p>
+                    <p style="margin-top: 15px;">✓ Manhour estimates based on historical data, applicable section tasks and/or MPD requirements</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; padding: 20px; background: var(--color-bg-primary); border-radius: 10px;">
+                <h4>Approval Signatures</h4>
+                <div style="margin-top: 20px;">
+                    <p><strong>Manager Name:</strong> <span id="sig-manager"></span></p>
+                    <p><strong>Position:</strong> Line Maintenance Manager</p>
+                    <p><strong>Date:</strong> <span id="sig-date"></span></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="action-buttons" class="action-buttons" style="display: none;">
+            <button onclick="calculate()">🔄 Recalculate All</button>
+            <button onclick="exportData()" class="secondary">💾 Save Data</button>
+            <button onclick="importData()" class="secondary">📂 Load Data</button>
+            <button onclick="window.print()" class="secondary">🖨️ Print Report</button>
+        </div>
+
+        <!-- User Guide Tab -->
+        <div id="guide" class="tab-content">
+            <h2 class="section-header">📖 User Guide - Manhour Planning Tool</h2>
+            
+            <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding: 25px; border-radius: 10px; margin-bottom: 20px; color: white;">
+                <h3 style="color: white; margin-bottom: 15px;">🎯 Quick Start</h3>
+                <ol style="line-height: 2; margin-left: 20px;">
+                    <li><strong>Dashboard Tab:</strong> View instant KPIs and quarterly summary at a glance</li>
+                    <li><strong>Qualified Staff Tab:</strong> Enter/modify resources and forecasted tasks for engineers</li>
+                    <li><strong>Admin & Mechanics Tab:</strong> Enter/modify resources and tasks for support staff</li>
+                    <li><strong>Report Tab:</strong> Auto-generated executive report with status and mitigation recommendations</li>
+                    <li><strong>All calculations are LIVE:</strong> Changes update instantly across all tabs</li>
+                </ol>
+            </div>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">⚙️ How to Use Each Tab</h3>
+                
+                <h4 style="margin-top: 20px; color: var(--color-text-primary);">📊 Dashboard Tab</h4>
+                <p>• View real-time Key Performance Indicators (KPIs)</p>
+                <p>• Monitor quarterly variance for both staff categories</p>
+                <p>• Check alert notifications for critical/warning statuses</p>
+                <p>• Review color-coded status legend</p>
+                
+                <h4 style="margin-top: 20px; color: var(--color-text-primary);">👨‍✈️ Qualified Staff Tab</h4>
+                <p><strong>Resource Planning Section:</strong></p>
+                <p>• Enter unit name (e.g., "Line Maintenance Engineers")</p>
+                <p>• Enter staff count for each unit</p>
+                <p>• Enter shift hours per day (typically 8 or 12 hours)</p>
+                <p>• Enter working days for each month (account for weekends and holidays)</p>
+                <p>• Click "+ Add Unit" to add more units</p>
+                <p>• Click "×" to delete unwanted units</p>
+                
+                <p style="margin-top: 15px;"><strong>Loss of Manhour Resources:</strong></p>
+                <p>• Daily break time and sick leave (2%) are AUTO-CALCULATED</p>
+                <p>• Enter planned training hours for each month</p>
+                <p>• Enter vacation hours for each month</p>
+                <p>• NET AVAILABLE HOURS calculated automatically</p>
+                
+                <p style="margin-top: 15px;"><strong>Forecasted Workload:</strong></p>
+                <p>• Enter task description (e.g., "Daily Pre-flight Inspections")</p>
+                <p>• Assign unit responsible for task</p>
+                <p>• Enter estimated hours per task</p>
+                <p>• Enter task frequency for each month</p>
+                <p>• Required hours AUTO-CALCULATED (Hours × Frequency)</p>
+                <p>• Variance analysis shows shortage or surplus automatically</p>
+                
+                <h4 style="margin-top: 20px; color: var(--color-text-primary);">🔧 Admin & Mechanics Tab</h4>
+                <p>• Same structure as Qualified Staff tab</p>
+                <p>• Enter mechanics, technicians, coordinators, and support staff</p>
+                <p>• Enter maintenance and operational tasks</p>
+                <p>• All calculations work identically</p>
+                
+                <h4 style="margin-top: 20px; color: var(--color-text-primary);">📄 Report Tab</h4>
+                <p>• AUTO-GENERATED executive report</p>
+                <p>• Shows overall status (Critical/Warning/OK)</p>
+                <p>• Detailed findings for both staff categories</p>
+                <p>• Recommended mitigation actions based on status</p>
+                <p>• Compliance statement and approval signatures</p>
+                <p>• Use "Print Report" button to generate PDF</p>
+            </div>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">📊 Understanding Status Levels</h3>
+                <div style="margin-left: 20px;">
+                    <p><strong style="color: var(--color-error);">🚨 CRITICAL (&gt;25% shortage):</strong></p>
+                    <p style="margin-left: 20px;">IMMEDIATE action required. Notify Quality Manager and Accountable Manager per MOE requirements.</p>
+                    
+                    <p style="margin-top: 15px;"><strong style="color: var(--color-warning);">⚠️ WARNING (10-25% shortage):</strong></p>
+                    <p style="margin-left: 20px;">Plan mitigation: implement overtime, accelerate training, consider recruitment.</p>
+                    
+                    <p style="margin-top: 15px;"><strong style="color: var(--color-caution);">⚠ CAUTION (0-10% shortage):</strong></p>
+                    <p style="margin-left: 20px;">Monitor closely and prepare contingency plans.</p>
+                    
+                    <p style="margin-top: 15px;"><strong style="color: var(--color-success);">✅ OK (Balanced/Surplus):</strong></p>
+                    <p style="margin-left: 20px;">No action needed. Maintain current staffing levels.</p>
+                </div>
+            </div>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">💡 Best Practices</h3>
+                <p>✓ Update working days at the start of each quarter</p>
+                <p>✓ Account for Kuwait weekends (Friday-Saturday) and public holidays</p>
+                <p>✓ Review and adjust count factors based on actual performance (industry standard: 1.5-2.5x MPD baseline)</p>
+                <p>✓ Include buffer time for unscheduled maintenance and AOG situations</p>
+                <p>✓ Document variance reasons monthly for continuous improvement</p>
+                <p>✓ Coordinate with Operations for accurate flight schedule forecasting</p>
+                <p>✓ Validate training hours against annual training plan</p>
+                <p>✓ Consider environmental factors (temperature, facility conditions) when planning</p>
+                <p>✓ Save data regularly using the "Save Data" button</p>
+                <p>✓ Review KPIs weekly, full report monthly, and present quarterly to management</p>
+            </div>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">📊 Understanding the Calculations</h3>
+                
+                <h4 style="margin-top: 15px;">Gross Available Hours Formula:</h4>
+                <p style="font-family: monospace; background: var(--color-bg-secondary); padding: 10px; border-radius: 5px;">
+                    Staff Count × Shift Hours/Day × Working Days = Gross Hours
+                </p>
+                
+                <h4 style="margin-top: 15px;">Net Available Hours Formula:</h4>
+                <p style="font-family: monospace; background: var(--color-bg-secondary); padding: 10px; border-radius: 5px;">
+                    Gross Hours - Break Time - Sick Leave - Training - Vacation = Net Hours
+                </p>
+                
+                <h4 style="margin-top: 15px;">Auto-Calculated Deductions:</h4>
+                <p>• <strong>Break Time:</strong> Automatically calculated at 1 hour per 8-hour shift (12.5% of gross hours)</p>
+                <p>• <strong>Sick Leave:</strong> Fixed at 2% of gross hours (industry standard per EASA guidelines)</p>
+                
+                <h4 style="margin-top: 15px;">Variance Calculation:</h4>
+                <p style="font-family: monospace; background: var(--color-bg-secondary); padding: 10px; border-radius: 5px;">
+                    Variance = Net Available Hours - Required Hours<br>
+                    Variance % = (Variance / Required Hours) × 100
+                </p>
+                
+                <p style="margin-top: 10px;"><strong>Note:</strong> Negative variance indicates shortage; positive indicates surplus capacity</p>
+            </div>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">🔧 Advanced Features</h3>
+                
+                <h4 style="margin-top: 15px;">Count Factor Application:</h4>
+                <p>When planning tasks, consider applying a count factor to MPD-specified hours based on your organization's performance:</p>
+                <ul style="margin-left: 20px; line-height: 1.8;">
+                    <li><strong>Count Factor 1.5:</strong> Highly efficient organization with optimal conditions</li>
+                    <li><strong>Count Factor 2.0:</strong> Standard organization (recommended starting point)</li>
+                    <li><strong>Count Factor 2.5:</strong> Organization with challenging environmental conditions</li>
+                </ul>
+                <p style="margin-top: 10px;"><em>Example: MPD task shows 0.5 MH, your organization typically takes 1.0 MH → Count Factor = 2.0</em></p>
+                
+                <h4 style="margin-top: 20px;">Capacity Utilization Optimization:</h4>
+                <p>Target utilization rates for optimal efficiency:</p>
+                <ul style="margin-left: 20px; line-height: 1.8;">
+                    <li><strong>85-95%:</strong> Optimal range for qualified staff</li>
+                    <li><strong>90-100%:</strong> Acceptable for admin/mechanics with buffer</li>
+                    <li><strong>&gt;100%:</strong> Requires overtime or temporary staff</li>
+                    <li><strong>&lt;75%:</strong> Consider resource reallocation or increased workload</li>
+                </ul>
+                
+                <h4 style="margin-top: 20px;">Fatigue Risk Management:</h4>
+                <p>Per EASA requirements and FRMS best practices:</p>
+                <ul style="margin-left: 20px; line-height: 1.8;">
+                    <li>Maximum 48 hours per week per Kuwait labor law</li>
+                    <li>Plan adequate rest periods between shifts</li>
+                    <li>Monitor overtime patterns to prevent fatigue-related errors</li>
+                    <li>Adjust shift patterns during high-workload periods</li>
+                </ul>
+            </div>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">❓ Troubleshooting & FAQ</h3>
+                
+                <h4 style="margin-top: 15px;">Q: Why are my calculations not updating?</h4>
+                <p><strong>A:</strong> Click "🔄 Recalculate All" button or refresh the page. All inputs trigger automatic recalculation.</p>
+                
+                <h4 style="margin-top: 15px;">Q: What if I need more than 3 months planning?</h4>
+                <p><strong>A:</strong> Save each quarter separately. This tool is designed for quarterly rolling plans per MOE requirements.</p>
+                
+                <h4 style="margin-top: 15px;">Q: How do I account for overtime?</h4>
+                <p><strong>A:</strong> Add overtime as additional staff hours or increase shift hours/day. Note: Maximum 48 hours/week per Kuwait law.</p>
+                
+                <h4 style="margin-top: 15px;">Q: Can I add more resource units or tasks?</h4>
+                <p><strong>A:</strong> Yes! Use "+ Add Unit" or "+ Add Task" buttons. Use "×" button to remove rows you don't need.</p>
+                
+                <h4 style="margin-top: 15px;">Q: What should I do if variance exceeds -25%?</h4>
+                <p><strong>A:</strong> 
+                    <br>1. Immediately notify QM and AM per regulatory requirements
+                    <br>2. Review Report tab for mitigation recommendations
+                    <br>3. Consider: overtime authorization, training acceleration, temporary staff, or work deferral
+                    <br>4. Document actions taken and expected resolution timeline
+                </p>
+                
+                <h4 style="margin-top: 15px;">Q: How accurate should my forecasts be?</h4>
+                <p><strong>A:</strong> Aim for ±10% accuracy. Use historical data, flight schedule, and fleet planning. Review monthly and adjust for next quarter.</p>
+                
+                <h4 style="margin-top: 15px;">Q: What's included in "Required Hours" for tasks?</h4>
+                <p><strong>A:</strong> Include all associated work: actual maintenance, supervision, planning, tooling prep, documentation, and quality monitoring.</p>
+            </div> holidays</p>
+                <p>✓ Enter confirmed training schedules as soon as approved</p>
+                <p>✓ Update vacation hours based on approved leave requests</p>
+                <p>✓ Review task frequencies quarterly based on actual performance</p>
+                <p>✓ Add 10% buffer in task hours for unplanned work</p>
+                <p>✓ Click "Recalculate All" if numbers seem incorrect</p>
+                <p>✓ Use "Print Report" for formal documentation and signatures</p>
+                <p>✓ Save/bookmark this page for quick access</p>
+            </div>
+
+        </div>
+
+        <!-- Support Tab Closing -->
+        
+        <!-- Modals -->
+        <div id="saveModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">💾 Save Planning Data</div>
+                <div class="modal-body">
+                    <p>Your current planning data will be downloaded as a JSON file. You can load this file later to restore all your entries.</p>
+                    <p style="margin-top: 15px; font-size: 13px; color: var(--color-text-secondary);">
+                        <strong>File name:</strong> manhour-plan-<span id="save-filename"></span>.json
+                    </p>
+                </div>
+                <div class="modal-buttons">
+                    <button class="secondary" onclick="closeModal('saveModal')">Cancel</button>
+                    <button onclick="confirmSave()">Download</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loadModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">📂 Load Planning Data</div>
+                <div class="modal-body">
+                    <p>Select a previously saved JSON file to restore your planning data. This will replace all current entries.</p>
+                    <div class="file-input-wrapper" style="margin-top: 20px;">
+                        <input type="file" id="fileInput" accept=".json" onchange="handleFileSelect(event)">
+                        <label class="file-input-label" for="fileInput">Choose File</label>
+                    </div>
+                    <div id="fileName" class="file-name"></div>
+                </div>
+                <div class="modal-buttons">
+                    <button class="secondary" onclick="closeModal('loadModal')">Cancel</button>
+                    <button id="loadButton" onclick="confirmLoad()" disabled style="opacity: 0.5;">Load Data</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support Tab -->
+        <div id="support" class="tab-content">
+            <h2 class="section-header">📞 Support & Contact</h2>
+            
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">🏢 Kuwait Airways - Quality/Compliance Monitoring - Engineering</h3>
+            </div>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">💡 Technical Support</h3>
+                <p>For technical issues with this tool, please contact:</p>
+                <p style="margin-top: 15px;"><strong>Tool Developer:</strong> Engr. Abdulmuhsen Haji Mohammad</p>
+                <p><strong>Email:</strong> abdulmuhsen.mohammad@kuwaitairways.com</p>
+                <p><strong>Available:</strong> Sunday-Thursday, 8:00 AM - 2:00 PM Kuwait Time</p>
+            </div>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px; margin-top: 20px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">📊 Manhour Planning, Usage & Calculation Support</h3>
+                <p>For guidance on planning inputs, usage, and calculation methodology, reach out to:</p>
+                <p style="margin-top: 15px;"><strong>Quality/Compliance Monitoring Section - Quality Engineers</strong></p>
+            </div>
+        </div>
+
+        <!-- About Tab -->
+        <div id="about" class="tab-content">
+            <h2 class="section-header">ℹ️ About This Tool</h2>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">👤 Developer Information</h3>
+                <p><strong>Developer:</strong> Engr. Abdulmuhsen Haji Mohammad - AMX</p>
+                <p><strong>Email:</strong> abdulmuhsen.mohammad@kuwaitairways.com</p>
+                <p><strong>Department:</strong> Kuwait Airways - Quality/Compliance Monitoring - Engineering</p>
+            </div>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">🔄 Version Control & Details</h3>
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 10px;">
+                    <img src="mhplanner-logo.png" alt="MHPlanner+" style="height: 64px;">
+                    <p style="margin: 0;"><strong>Application:</strong> MHPlanner+</p>
+                </div>
+                <p><strong>Tool Version:</strong> 1.0.0</p>
+                <p><strong>Last Updated:</strong> February 2026</p>
+                <p style="margin-top: 15px;"><strong>Version Control:</strong></p>
+                <p>• Managed under software version control with change history and author tracking</p>
+                <p>• Releases are tagged by version with documented changes</p>
+                <p>• Source updates follow internal review and approval workflow</p>
+            </div>
+
+            <div style="background: var(--color-bg-primary); padding: 25px; border-radius: 10px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 15px;">© Copyright & Disclaimer</h3>
+                <p><strong>Copyright:</strong> Kuwait Airways Quality/Compliance Monitoring - Engineering and Engr. Abdulmuhsen Haji Mohammad. All rights reserved.</p>
+                <p style="margin-top: 10px;">This software and its contents are provided for internal planning and compliance support. It is intended for authorized use only.</p>
+                <p style="margin-top: 10px;"><strong>License & Use:</strong> No license is granted for external distribution, commercial use, or reuse outside authorized Kuwait Airways operations without written permission.</p>
+                <p style="margin-top: 10px;"><strong>Modification Policy:</strong> Any changes to the source code, interface, or logic require prior written approval from the owner and developer. Unauthorized copying, distribution, or modification is prohibited.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Demo data
+        const demoData = {
+            qualified: {
+                resources: [
+                    {unit: 'Line Maintenance Engineers', count: 12, shift: 8, m1: 31, m2: 28, m3: 31},
+                    {unit: 'Base Maintenance Engineers', count: 5, shift: 8, m1: 31, m2: 28, m3: 31},
+                    {unit: 'Quality Inspectors', count: 2, shift: 8, m1: 31, m2: 28, m3: 31}
+                ],
+                tasks: [
+                    {desc: 'Daily Pre-flight Inspections', unit: 'Line Maintenance Engineers', hrs: 2, m1: 93, m2: 84, m3: 93},
+                    {desc: 'Weekly Checks (A-Checks)', unit: 'Line Maintenance Engineers', hrs: 12, m1: 13, m2: 12, m3: 13},
+                    {desc: 'Engine Oil Service', unit: 'Line Maintenance Engineers', hrs: 1.5, m1: 31, m2: 28, m3: 31},
+                    {desc: 'APU Inspections', unit: 'Line Maintenance Engineers', hrs: 3, m1: 12, m2: 11, m3: 12},
+                    {desc: 'Landing Gear Inspections', unit: 'Base Maintenance Engineers', hrs: 8, m1: 6, m2: 5, m3: 6},
+                    {desc: 'Structural Inspections', unit: 'Base Maintenance Engineers', hrs: 6, m1: 8, m2: 7, m3: 9},
+                    {desc: 'Final Release Inspections', unit: 'Quality Inspectors', hrs: 1, m1: 93, m2: 84, m3: 93}
+                ]
+            },
+            admin: {
+                resources: [
+                    {unit: 'Aircraft Mechanics', count: 24, shift: 8, m1: 31, m2: 28, m3: 31},
+                    {unit: 'Avionics Technicians', count: 8, shift: 8, m1: 31, m2: 28, m3: 31},
+                    {unit: 'GSE Operators', count: 6, shift: 8, m1: 31, m2: 28, m3: 31},
+                    {unit: 'Planning Coordinators', count: 3, shift: 8, m1: 31, m2: 28, m3: 31}
+                ],
+                tasks: [
+                    {desc: 'Routine Servicing Tasks', unit: 'Aircraft Mechanics', hrs: 4, m1: 93, m2: 84, m3: 93},
+                    {desc: 'Component Replacement', unit: 'Aircraft Mechanics', hrs: 6, m1: 31, m2: 28, m3: 31},
+                    {desc: 'Panel Removals/Installations', unit: 'Aircraft Mechanics', hrs: 3, m1: 46, m2: 42, m3: 46},
+                    {desc: 'Avionics System Checks', unit: 'Avionics Technicians', hrs: 4, m1: 31, m2: 28, m3: 31},
+                    {desc: 'Radio/Nav Equipment Testing', unit: 'Avionics Technicians', hrs: 2.5, m1: 24, m2: 22, m3: 24},
+                    {desc: 'Aircraft Towing Operations', unit: 'GSE Operators', hrs: 1.5, m1: 62, m2: 56, m3: 62},
+                    {desc: 'Work Package Planning', unit: 'Planning Coordinators', hrs: 6, m1: 31, m2: 28, m3: 31},
+                    {desc: 'Material Coordination', unit: 'Planning Coordinators', hrs: 4, m1: 46, m2: 42, m3: 46}
+                ]
+            }
+        };
+
+        let selectedFile = null;
+
+        // Initialize app
+        function init() {
+            loadDemoData();
+            calculate();
+            updateReport();
+        }
+
+        function loadDemoData() {
+            // Load qualified resources
+            const qTable = document.getElementById('qualified-resources');
+            qTable.innerHTML = '';
+            demoData.qualified.resources.forEach(r => {
+                addQualifiedRow(r);
+            });
+
+            // Load qualified tasks
+            const qTaskTable = document.getElementById('qualified-tasks');
+            qTaskTable.innerHTML = '';
+            demoData.qualified.tasks.forEach(t => {
+                addQualifiedTask(t);
+            });
+
+            // Load admin resources
+            const aTable = document.getElementById('admin-resources');
+            aTable.innerHTML = '';
+            demoData.admin.resources.forEach(r => {
+                addAdminRow(r);
+            });
+
+            // Load admin tasks
+            const aTaskTable = document.getElementById('admin-tasks');
+            aTaskTable.innerHTML = '';
+            demoData.admin.tasks.forEach(t => {
+                addAdminTask(t);
+            });
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'report') {
+                updateReport();
+            }
+
+            const actionButtons = document.getElementById('action-buttons');
+            if (actionButtons) {
+                actionButtons.style.display = (tabName === 'dashboard' || tabName === 'qualified' || tabName === 'admin' || tabName === 'report') ? '' : 'none';
+            }
+
+            const planHeader = document.getElementById('plan-header');
+            if (planHeader) {
+                planHeader.style.display = (tabName === 'dashboard' || tabName === 'qualified' || tabName === 'admin' || tabName === 'report') ? 'grid' : 'none';
+            }
+        }
+
+        function addQualifiedRow(data = {}) {
+            const tbody = document.getElementById('qualified-resources');
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td><input type="text" value="${data.unit || ''}" onchange="calculate()"></td>
+                <td><input type="number" value="${data.count || 0}" min="0" onchange="calculate()"></td>
+                <td><input type="number" value="${data.shift || 8}" min="1" max="12" onchange="calculate()"></td>
+                <td><input type="number" value="${data.m1 || 0}" min="0" max="31" onchange="calculate()"></td>
+                <td><input type="number" value="${data.m2 || 0}" min="0" max="31" onchange="calculate()"></td>
+                <td><input type="number" value="${data.m3 || 0}" min="0" max="31" onchange="calculate()"></td>
+                <td><button class="delete-row-btn" onclick="deleteRow(this)">×</button></td>
+            `;
+        }
+
+        function addAdminRow(data = {}) {
+            const tbody = document.getElementById('admin-resources');
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td><input type="text" value="${data.unit || ''}" onchange="calculate()"></td>
+                <td><input type="number" value="${data.count || 0}" min="0" onchange="calculate()"></td>
+                <td><input type="number" value="${data.shift || 8}" min="1" max="12" onchange="calculate()"></td>
+                <td><input type="number" value="${data.m1 || 0}" min="0" max="31" onchange="calculate()"></td>
+                <td><input type="number" value="${data.m2 || 0}" min="0" max="31" onchange="calculate()"></td>
+                <td><input type="number" value="${data.m3 || 0}" min="0" max="31" onchange="calculate()"></td>
+                <td><button class="delete-row-btn" onclick="deleteRow(this)">×</button></td>
+            `;
+        }
+
+        function addQualifiedTask(data = {}) {
+            const tbody = document.getElementById('qualified-tasks');
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td><input type="text" value="${data.desc || ''}" onchange="calculate()"></td>
+                <td><input type="text" value="${data.unit || ''}" onchange="calculate()"></td>
+                <td><input type="number" value="${data.hrs || 0}" min="0" step="0.5" onchange="calculate()"></td>
+                <td><input type="number" value="${data.m1 || 0}" min="0" onchange="calculate()"></td>
+                <td><input type="number" value="${data.m2 || 0}" min="0" onchange="calculate()"></td>
+                <td><input type="number" value="${data.m3 || 0}" min="0" onchange="calculate()"></td>
+                <td class="calculated">${((data.hrs || 0) * (data.m1 || 0)).toFixed(1)}</td>
+                <td class="calculated">${((data.hrs || 0) * (data.m2 || 0)).toFixed(1)}</td>
+                <td class="calculated">${((data.hrs || 0) * (data.m3 || 0)).toFixed(1)}</td>
+                <td><button class="delete-row-btn" onclick="deleteRow(this)">×</button></td>
+            `;
+        }
+
+        function addAdminTask(data = {}) {
+            const tbody = document.getElementById('admin-tasks');
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td><input type="text" value="${data.desc || ''}" onchange="calculate()"></td>
+                <td><input type="text" value="${data.unit || ''}" onchange="calculate()"></td>
+                <td><input type="number" value="${data.hrs || 0}" min="0" step="0.5" onchange="calculate()"></td>
+                <td><input type="number" value="${data.m1 || 0}" min="0" onchange="calculate()"></td>
+                <td><input type="number" value="${data.m2 || 0}" min="0" onchange="calculate()"></td>
+                <td><input type="number" value="${data.m3 || 0}" min="0" onchange="calculate()"></td>
+                <td class="calculated">${((data.hrs || 0) * (data.m1 || 0)).toFixed(1)}</td>
+                <td class="calculated">${((data.hrs || 0) * (data.m2 || 0)).toFixed(1)}</td>
+                <td class="calculated">${((data.hrs || 0) * (data.m3 || 0)).toFixed(1)}</td>
+                <td><button class="delete-row-btn" onclick="deleteRow(this)">×</button></td>
+            `;
+        }
+
+        function deleteRow(btn) {
+            btn.closest('tr').remove();
+            calculate();
+        }
+
+        function calculate() {
+            calculateQualified();
+            calculateAdmin();
+            updateDashboard();
+        }
+
+        function calculateQualified() {
+            const rows = document.querySelectorAll('#qualified-resources tr');
+            let grossM1 = 0, grossM2 = 0, grossM3 = 0;
+            let totalStaff = 0;
+
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                if (inputs.length >= 6) {
+                    const count = parseFloat(inputs[1].value) || 0;
+                    const shift = parseFloat(inputs[2].value) || 0;
+                    const d1 = parseFloat(inputs[3].value) || 0;
+                    const d2 = parseFloat(inputs[4].value) || 0;
+                    const d3 = parseFloat(inputs[5].value) || 0;
+
+                    grossM1 += count * shift * d1;
+                    grossM2 += count * shift * d2;
+                    grossM3 += count * shift * d3;
+                    totalStaff += count;
+                }
+            });
+
+            // Calculate deductions
+            const breakM1 = grossM1 * 0.125;
+            const breakM2 = grossM2 * 0.125;
+            const breakM3 = grossM3 * 0.125;
+
+            const sickM1 = grossM1 * 0.02;
+            const sickM2 = grossM2 * 0.02;
+            const sickM3 = grossM3 * 0.02;
+
+            const trainM1 = parseFloat(document.getElementById('q-train-m1').value) || 0;
+            const trainM2 = parseFloat(document.getElementById('q-train-m2').value) || 0;
+            const trainM3 = parseFloat(document.getElementById('q-train-m3').value) || 0;
+
+            const vacM1 = parseFloat(document.getElementById('q-vac-m1').value) || 0;
+            const vacM2 = parseFloat(document.getElementById('q-vac-m2').value) || 0;
+            const vacM3 = parseFloat(document.getElementById('q-vac-m3').value) || 0;
+
+            const netM1 = grossM1 - breakM1 - sickM1 - trainM1 - vacM1;
+            const netM2 = grossM2 - breakM2 - sickM2 - trainM2 - vacM2;
+            const netM3 = grossM3 - breakM3 - sickM3 - trainM3 - vacM3;
+
+            // Update display
+            document.getElementById('q-break-m1').textContent = breakM1.toFixed(0);
+            document.getElementById('q-break-m2').textContent = breakM2.toFixed(0);
+            document.getElementById('q-break-m3').textContent = breakM3.toFixed(0);
+
+            document.getElementById('q-sick-m1').textContent = sickM1.toFixed(1);
+            document.getElementById('q-sick-m2').textContent = sickM2.toFixed(1);
+            document.getElementById('q-sick-m3').textContent = sickM3.toFixed(1);
+
+            document.getElementById('q-net-m1').textContent = netM1.toFixed(0);
+            document.getElementById('q-net-m2').textContent = netM2.toFixed(0);
+            document.getElementById('q-net-m3').textContent = netM3.toFixed(0);
+
+            // Calculate required hours
+            const taskRows = document.querySelectorAll('#qualified-tasks tr');
+            let reqM1 = 0, reqM2 = 0, reqM3 = 0;
+
+            taskRows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const calculated = row.querySelectorAll('.calculated');
+                
+                if (inputs.length >= 6) {
+                    const hrs = parseFloat(inputs[2].value) || 0;
+                    const f1 = parseFloat(inputs[3].value) || 0;
+                    const f2 = parseFloat(inputs[4].value) || 0;
+                    const f3 = parseFloat(inputs[5].value) || 0;
+
+                    const r1 = hrs * f1;
+                    const r2 = hrs * f2;
+                    const r3 = hrs * f3;
+
+                    reqM1 += r1;
+                    reqM2 += r2;
+                    reqM3 += r3;
+
+                    if (calculated.length >= 3) {
+                        calculated[0].textContent = r1.toFixed(1);
+                        calculated[1].textContent = r2.toFixed(1);
+                        calculated[2].textContent = r3.toFixed(1);
+                    }
+                }
+            });
+
+            document.getElementById('q-req-m1').textContent = reqM1.toFixed(0);
+            document.getElementById('q-req-m2').textContent = reqM2.toFixed(0);
+            document.getElementById('q-req-m3').textContent = reqM3.toFixed(0);
+
+            // Calculate variance
+            const varM1 = netM1 - reqM1;
+            const varM2 = netM2 - reqM2;
+            const varM3 = netM3 - reqM3;
+
+            const pctM1 = (varM1 / reqM1) * 100;
+            const pctM2 = (varM2 / reqM2) * 100;
+            const pctM3 = (varM3 / reqM3) * 100;
+
+            document.getElementById('q-var-m1').textContent = (varM1 > 0 ? '+' : '') + varM1.toFixed(0);
+            document.getElementById('q-var-m2').textContent = (varM2 > 0 ? '+' : '') + varM2.toFixed(0);
+            document.getElementById('q-var-m3').textContent = (varM3 > 0 ? '+' : '') + varM3.toFixed(0);
+
+            document.getElementById('q-pct-m1').textContent = (pctM1 > 0 ? '+' : '') + pctM1.toFixed(1) + '%';
+            document.getElementById('q-pct-m2').textContent = (pctM2 > 0 ? '+' : '') + pctM2.toFixed(1) + '%';
+            document.getElementById('q-pct-m3').textContent = (pctM3 > 0 ? '+' : '') + pctM3.toFixed(1) + '%';
+
+            // Update totals
+            document.getElementById('total-q-staff').textContent = totalStaff;
+            document.getElementById('q-net-total').textContent = (netM1 + netM2 + netM3).toFixed(0);
+            document.getElementById('q-req-total').textContent = (reqM1 + reqM2 + reqM3).toFixed(0);
+            
+            const totalVar = (netM1 + netM2 + netM3) - (reqM1 + reqM2 + reqM3);
+            document.getElementById('q-var-total').textContent = (totalVar > 0 ? '+' : '') + totalVar.toFixed(0);
+            document.getElementById('q-var-total').style.color = totalVar >= 0 ? 'var(--color-success)' : 'var(--color-error)';
+        }
+
+        function calculateAdmin() {
+            const rows = document.querySelectorAll('#admin-resources tr');
+            let grossM1 = 0, grossM2 = 0, grossM3 = 0;
+            let totalStaff = 0;
+
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                if (inputs.length >= 6) {
+                    const count = parseFloat(inputs[1].value) || 0;
+                    const shift = parseFloat(inputs[2].value) || 0;
+                    const d1 = parseFloat(inputs[3].value) || 0;
+                    const d2 = parseFloat(inputs[4].value) || 0;
+                    const d3 = parseFloat(inputs[5].value) || 0;
+
+                    grossM1 += count * shift * d1;
+                    grossM2 += count * shift * d2;
+                    grossM3 += count * shift * d3;
+                    totalStaff += count;
+                }
+            });
+
+            // Calculate deductions
+            const breakM1 = grossM1 * 0.125;
+            const breakM2 = grossM2 * 0.125;
+            const breakM3 = grossM3 * 0.125;
+
+            const sickM1 = grossM1 * 0.02;
+            const sickM2 = grossM2 * 0.02;
+            const sickM3 = grossM3 * 0.02;
+
+            const trainM1 = parseFloat(document.getElementById('a-train-m1').value) || 0;
+            const trainM2 = parseFloat(document.getElementById('a-train-m2').value) || 0;
+            const trainM3 = parseFloat(document.getElementById('a-train-m3').value) || 0;
+
+            const vacM1 = parseFloat(document.getElementById('a-vac-m1').value) || 0;
+            const vacM2 = parseFloat(document.getElementById('a-vac-m2').value) || 0;
+            const vacM3 = parseFloat(document.getElementById('a-vac-m3').value) || 0;
+
+            const netM1 = grossM1 - breakM1 - sickM1 - trainM1 - vacM1;
+            const netM2 = grossM2 - breakM2 - sickM2 - trainM2 - vacM2;
+            const netM3 = grossM3 - breakM3 - sickM3 - trainM3 - vacM3;
+
+            // Update display
+            document.getElementById('a-break-m1').textContent = breakM1.toFixed(0);
+            document.getElementById('a-break-m2').textContent = breakM2.toFixed(0);
+            document.getElementById('a-break-m3').textContent = breakM3.toFixed(0);
+
+            document.getElementById('a-sick-m1').textContent = sickM1.toFixed(1);
+            document.getElementById('a-sick-m2').textContent = sickM2.toFixed(1);
+            document.getElementById('a-sick-m3').textContent = sickM3.toFixed(1);
+
+            document.getElementById('a-net-m1').textContent = netM1.toFixed(0);
+            document.getElementById('a-net-m2').textContent = netM2.toFixed(0);
+            document.getElementById('a-net-m3').textContent = netM3.toFixed(0);
+
+            // Calculate required hours
+            const taskRows = document.querySelectorAll('#admin-tasks tr');
+            let reqM1 = 0, reqM2 = 0, reqM3 = 0;
+
+            taskRows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const calculated = row.querySelectorAll('.calculated');
+                
+                if (inputs.length >= 6) {
+                    const hrs = parseFloat(inputs[2].value) || 0;
+                    const f1 = parseFloat(inputs[3].value) || 0;
+                    const f2 = parseFloat(inputs[4].value) || 0;
+                    const f3 = parseFloat(inputs[5].value) || 0;
+
+                    const r1 = hrs * f1;
+                    const r2 = hrs * f2;
+                    const r3 = hrs * f3;
+
+                    reqM1 += r1;
+                    reqM2 += r2;
+                    reqM3 += r3;
+
+                    if (calculated.length >= 3) {
+                        calculated[0].textContent = r1.toFixed(1);
+                        calculated[1].textContent = r2.toFixed(1);
+                        calculated[2].textContent = r3.toFixed(1);
+                    }
+                }
+            });
+
+            document.getElementById('a-req-m1').textContent = reqM1.toFixed(1);
+            document.getElementById('a-req-m2').textContent = reqM2.toFixed(0);
+            document.getElementById('a-req-m3').textContent = reqM3.toFixed(1);
+
+            // Calculate variance
+            const varM1 = netM1 - reqM1;
+            const varM2 = netM2 - reqM2;
+            const varM3 = netM3 - reqM3;
+
+            const pctM1 = (varM1 / reqM1) * 100;
+            const pctM2 = (varM2 / reqM2) * 100;
+            const pctM3 = (varM3 / reqM3) * 100;
+
+            document.getElementById('a-var-m1').textContent = (varM1 > 0 ? '+' : '') + varM1.toFixed(1);
+            document.getElementById('a-var-m2').textContent = (varM2 > 0 ? '+' : '') + varM2.toFixed(0);
+            document.getElementById('a-var-m3').textContent = (varM3 > 0 ? '+' : '') + varM3.toFixed(1);
+
+            document.getElementById('a-pct-m1').textContent = (pctM1 > 0 ? '+' : '') + pctM1.toFixed(1) + '%';
+            document.getElementById('a-pct-m2').textContent = (pctM2 > 0 ? '+' : '') + pctM2.toFixed(1) + '%';
+            document.getElementById('a-pct-m3').textContent = (pctM3 > 0 ? '+' : '') + pctM3.toFixed(1) + '%';
+
+            // Update totals
+            document.getElementById('total-a-staff').textContent = totalStaff;
+            document.getElementById('a-net-total').textContent = (netM1 + netM2 + netM3).toFixed(0);
+            document.getElementById('a-req-total').textContent = (reqM1 + reqM2 + reqM3).toFixed(0);
+            
+            const totalVar = (netM1 + netM2 + netM3) - (reqM1 + reqM2 + reqM3);
+            document.getElementById('a-var-total').textContent = (totalVar > 0 ? '+' : '') + totalVar.toFixed(0);
+            document.getElementById('a-var-total').style.color = totalVar >= 0 ? 'var(--color-success)' : 'var(--color-error)';
+        }
+
+        function updateDashboard() {
+            const qNetTotal = parseFloat(document.getElementById('q-net-total').textContent.replace(/,/g, ''));
+            const qReqTotal = parseFloat(document.getElementById('q-req-total').textContent.replace(/,/g, ''));
+            const qVarPct = ((qNetTotal - qReqTotal) / qReqTotal) * 100;
+
+            const aNetTotal = parseFloat(document.getElementById('a-net-total').textContent.replace(/,/g, ''));
+            const aReqTotal = parseFloat(document.getElementById('a-req-total').textContent.replace(/,/g, ''));
+            const aVarPct = ((aNetTotal - aReqTotal) / aReqTotal) * 100;
+
+            // Update KPI cards
+            document.getElementById('q-variance').textContent = (qVarPct > 0 ? '+' : '') + qVarPct.toFixed(1) + '%';
+            document.getElementById('a-variance').textContent = (aVarPct > 0 ? '+' : '') + aVarPct.toFixed(1) + '%';
+
+            // Determine status
+            const qCard = document.getElementById('q-variance-card');
+            const qStatus = document.getElementById('q-status');
+            qCard.className = 'kpi-card';
+            qStatus.className = 'kpi-status';
+
+            if (qVarPct <= -25) {
+                qCard.classList.add('critical');
+                qStatus.classList.add('critical');
+                qStatus.textContent = 'CRITICAL';
+            } else if (qVarPct < -10) {
+                qCard.classList.add('warning');
+                qStatus.classList.add('warning');
+                qStatus.textContent = 'WARNING';
+            } else if (qVarPct < 0) {
+                qCard.classList.add('caution');
+                qStatus.classList.add('caution');
+                qStatus.textContent = 'CAUTION';
+            } else {
+                qCard.classList.add('ok');
+                qStatus.classList.add('ok');
+                qStatus.textContent = 'OK';
+            }
+
+            const aCard = document.getElementById('a-variance-card');
+            const aStatus = document.getElementById('a-status');
+            aCard.className = 'kpi-card';
+            aStatus.className = 'kpi-status';
+
+            if (aVarPct <= -25) {
+                aCard.classList.add('critical');
+                aStatus.classList.add('critical');
+                aStatus.textContent = 'CRITICAL';
+            } else if (aVarPct < -10) {
+                aCard.classList.add('warning');
+                aStatus.classList.add('warning');
+                aStatus.textContent = 'WARNING';
+            } else if (aVarPct < 0) {
+                aCard.classList.add('caution');
+                aStatus.classList.add('caution');
+                aStatus.textContent = 'CAUTION';
+            } else {
+                aCard.classList.add('ok');
+                aStatus.classList.add('ok');
+                aStatus.textContent = 'OK';
+            }
+
+            // Update alerts
+            const alertContainer = document.getElementById('alert-container');
+            alertContainer.innerHTML = '';
+
+            if (qVarPct <= -25 || aVarPct <= -25) {
+                alertContainer.innerHTML += `
+                    <div class="alert-box critical">
+                        <strong>🚨 CRITICAL ALERT:</strong> Manhour shortage exceeds 25%. Immediate notification to Quality Manager and Accountable Manager required per MOE requirements.
+                    </div>
+                `;
+            } else if (qVarPct < -10 || aVarPct < -10) {
+                alertContainer.innerHTML += `
+                    <div class="alert-box warning">
+                        <strong>⚠️ WARNING:</strong> Significant manhour shortage detected. Implement mitigation actions: overtime, training acceleration, or recruitment planning.
+                    </div>
+                `;
+            } else if (qVarPct < 0 || aVarPct < 0) {
+                alertContainer.innerHTML += `
+                    <div class="alert-box warning">
+                        <strong>⚠ CAUTION:</strong> Minor manhour shortage detected. Monitor closely and prepare contingency plans.
+                    </div>
+                `;
+            } else {
+                alertContainer.innerHTML += `
+                    <div class="alert-box ok">
+                        <strong>✅ STATUS OK:</strong> Resource levels are balanced or in surplus. Maintain current staffing levels.
+                    </div>
+                `;
+            }
+        }
+
+        function updateReport() {
+            const section = document.getElementById('section').value;
+            const manager = document.getElementById('manager').value;
+            const quarter = document.getElementById('quarter').value;
+            const year = document.getElementById('year').value;
+
+            document.getElementById('rep-section').textContent = section;
+            document.getElementById('rep-manager').textContent = manager;
+            document.getElementById('rep-period').textContent = `${quarter} ${year}`;
+            document.getElementById('rep-date').textContent = new Date().toLocaleDateString();
+
+            document.getElementById('sig-manager').textContent = manager;
+            document.getElementById('sig-date').textContent = new Date().toLocaleDateString();
+
+            const qNetTotal = parseFloat(document.getElementById('q-net-total').textContent.replace(/,/g, ''));
+            const qReqTotal = parseFloat(document.getElementById('q-req-total').textContent.replace(/,/g, ''));
+            const qVarPct = ((qNetTotal - qReqTotal) / qReqTotal) * 100;
+
+            const aNetTotal = parseFloat(document.getElementById('a-net-total').textContent.replace(/,/g, ''));
+            const aReqTotal = parseFloat(document.getElementById('a-req-total').textContent.replace(/,/g, ''));
+            const aVarPct = ((aNetTotal - aReqTotal) / aReqTotal) * 100;
+
+            const worstPct = Math.min(qVarPct, aVarPct);
+            const overallStatus = document.getElementById('overall-status');
+            
+            if (worstPct <= -25) {
+                overallStatus.className = 'alert-box critical';
+                overallStatus.innerHTML = '<strong>🚨 CRITICAL STATUS:</strong> Severe resource shortage requires immediate escalation to Quality Manager and Accountable Manager per regulatory requirements.';
+            } else if (worstPct < -10) {
+                overallStatus.className = 'alert-box warning';
+                overallStatus.innerHTML = '<strong>⚠️ WARNING STATUS:</strong> Significant resource shortage requires mitigation planning and implementation.';
+            } else if (worstPct < 0) {
+                overallStatus.className = 'alert-box warning';
+                overallStatus.innerHTML = '<strong>⚠ CAUTION STATUS:</strong> Minor resource shortage requires monitoring and contingency preparation.';
+            } else {
+                overallStatus.className = 'alert-box ok';
+                overallStatus.innerHTML = '<strong>✅ OK STATUS:</strong> Resource levels are adequate for planned workload. Continue current operations.';
+            }
+
+            // Detailed findings
+            const findings = document.getElementById('detailed-findings');
+            findings.innerHTML = `
+                <div style="background: var(--color-bg-primary); padding: 20px; border-radius: 10px; margin-bottom: 15px;">
+                    <h4 style="color: var(--color-primary); margin-bottom: 10px;">Qualified Staff Analysis</h4>
+                    <p><strong>Quarterly Net Available Hours:</strong> ${qNetTotal.toFixed(0)} hours</p>
+                    <p><strong>Quarterly Required Hours:</strong> ${qReqTotal.toFixed(0)} hours</p>
+                    <p><strong>Variance:</strong> ${(qNetTotal - qReqTotal).toFixed(0)} hours (${qVarPct.toFixed(1)}%)</p>
+                    <p style="margin-top: 10px;"><strong>Status:</strong> ${qVarPct <= -25 ? 'CRITICAL' : qVarPct < -10 ? 'WARNING' : qVarPct < 0 ? 'CAUTION' : 'OK'}</p>
+                </div>
+                <div style="background: var(--color-bg-primary); padding: 20px; border-radius: 10px;">
+                    <h4 style="color: var(--color-primary); margin-bottom: 10px;">Admin & Mechanics Analysis</h4>
+                    <p><strong>Quarterly Net Available Hours:</strong> ${aNetTotal.toFixed(0)} hours</p>
+                    <p><strong>Quarterly Required Hours:</strong> ${aReqTotal.toFixed(0)} hours</p>
+                    <p><strong>Variance:</strong> ${(aNetTotal - aReqTotal).toFixed(0)} hours (${aVarPct.toFixed(1)}%)</p>
+                    <p style="margin-top: 10px;"><strong>Status:</strong> ${aVarPct <= -25 ? 'CRITICAL' : aVarPct < -10 ? 'WARNING' : aVarPct < 0 ? 'CAUTION' : 'OK'}</p>
+                </div>
+            `;
+
+            // Mitigation actions
+            const actions = document.getElementById('mitigation-actions');
+            let actionHTML = '';
+
+            if (worstPct <= -25) {
+                actionHTML = `
+                    <div style="background: var(--color-bg-primary); padding: 20px; border-radius: 10px;">
+                        <h4 style="color: var(--color-error); margin-bottom: 15px;">IMMEDIATE ACTIONS REQUIRED:</h4>
+                        <ol style="line-height: 2; margin-left: 20px;">
+                            <li><strong>Regulatory Notification:</strong> Notify Quality Manager and Accountable Manager immediately per MOE Section 8.2.4</li>
+                            <li><strong>Emergency Overtime:</strong> Authorize up to maximum legal limits (48 hours/week) with FRMS monitoring</li>
+                            <li><strong>Temporary Staffing:</strong> Engage contract staff or borrow from other stations immediately</li>
+                            <li><strong>Work Deferral:</strong> Review all non-critical tasks for possible deferral within regulatory limits</li>
+                            <li><strong>Training Suspension:</strong> Temporarily suspend non-critical training to maximize production capacity</li>
+                            <li><strong>Daily Monitoring:</strong> Implement daily capacity tracking and reporting to management</li>
+                        </ol>
+                    </div>
+                `;
+            } else if (worstPct < -10) {
+                actionHTML = `
+                    <div style="background: var(--color-bg-primary); padding: 20px; border-radius: 10px;">
+                        <h4 style="color: var(--color-warning); margin-bottom: 15px;">MITIGATION ACTIONS RECOMMENDED:</h4>
+                        <ol style="line-height: 2; margin-left: 20px;">
+                            <li><strong>Controlled Overtime:</strong> Plan strategic overtime for critical periods</li>
+                            <li><strong>Training Acceleration:</strong> Fast-track ongoing training to qualify additional staff</li>
+                            <li><strong>Recruitment Initiation:</strong> Begin recruitment process for permanent positions</li>
+                            <li><strong>Cross-Training:</strong> Implement cross-training programs to increase flexibility</li>
+                            <li><strong>Weekly Review:</strong> Monitor variance weekly and adjust plans accordingly</li>
+                        </ol>
+                    </div>
+                `;
+            } else if (worstPct < 0) {
+                actionHTML = `
+                    <div style="background: var(--color-bg-primary); padding: 20px; border-radius: 10px;">
+                        <h4 style="color: var(--color-caution); margin-bottom: 15px;">CONTINGENCY PLANNING:</h4>
+                        <ol style="line-height: 2; margin-left: 20px;">
+                            <li><strong>Monitor Closely:</strong> Track actual vs. planned hours weekly</li>
+                            <li><strong>Prepare Overtime Plan:</strong> Have contingency overtime authorization ready</li>
+                            <li><strong>Identify Flexible Tasks:</strong> Mark tasks that could be deferred if needed</li>
+                            <li><strong>Communication:</strong> Brief staff on tight capacity situation</li>
+                        </ol>
+                    </div>
+                `;
+            } else {
+                actionHTML = `
+                    <div style="background: var(--color-bg-primary); padding: 20px; border-radius: 10px;">
+                        <h4 style="color: var(--color-success); margin-bottom: 15px;">MAINTENANCE ACTIONS:</h4>
+                        <ol style="line-height: 2; margin-left: 20px;">
+                            <li><strong>Maintain Staffing:</strong> Continue current resource levels</li>
+                            <li><strong>Focus on Quality:</strong> Use surplus capacity for quality improvements</li>
+                            <li><strong>Training Investment:</strong> Utilize excess capacity for training and development</li>
+                            <li><strong>Process Improvement:</strong> Dedicate time to efficiency enhancement projects</li>
+                        </ol>
+                    </div>
+                `;
+            }
+
+            actions.innerHTML = actionHTML;
+        }
+
+        function exportData() {
+            const filename = `manhour-plan-${document.getElementById('quarter').value}-${document.getElementById('year').value}-${document.getElementById('section').value.replace(/\s+/g, '-')}`;
+            document.getElementById('save-filename').textContent = filename;
+            document.getElementById('saveModal').classList.add('active');
+        }
+
+        function confirmSave() {
+            const data = {
+                header: {
+                    section: document.getElementById('section').value,
+                    manager: document.getElementById('manager').value,
+                    quarter: document.getElementById('quarter').value,
+                    year: document.getElementById('year').value
+                },
+                qualified: {
+                    resources: getTableData('qualified-resources'),
+                    losses: {
+                        train: [
+                            document.getElementById('q-train-m1').value,
+                            document.getElementById('q-train-m2').value,
+                            document.getElementById('q-train-m3').value
+                        ],
+                        vacation: [
+                            document.getElementById('q-vac-m1').value,
+                            document.getElementById('q-vac-m2').value,
+                            document.getElementById('q-vac-m3').value
+                        ]
+                    },
+                    tasks: getTaskData('qualified-tasks')
+                },
+                admin: {
+                    resources: getTableData('admin-resources'),
+                    losses: {
+                        train: [
+                            document.getElementById('a-train-m1').value,
+                            document.getElementById('a-train-m2').value,
+                            document.getElementById('a-train-m3').value
+                        ],
+                        vacation: [
+                            document.getElementById('a-vac-m1').value,
+                            document.getElementById('a-vac-m2').value,
+                            document.getElementById('a-vac-m3').value
+                        ]
+                    },
+                    tasks: getTaskData('admin-tasks')
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = document.getElementById('save-filename').textContent + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            closeModal('saveModal');
+        }
+
+        function getTableData(tableId) {
+            const rows = document.querySelectorAll(`#${tableId} tr`);
+            const data = [];
+            
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                if (inputs.length >= 6) {
+                    data.push({
+                        unit: inputs[0].value,
+                        count: inputs[1].value,
+                        shift: inputs[2].value,
+                        m1: inputs[3].value,
+                        m2: inputs[4].value,
+                        m3: inputs[5].value
+                    });
+                }
+            });
+            
+            return data;
+        }
+
+        function getTaskData(tableId) {
+            const rows = document.querySelectorAll(`#${tableId} tr`);
+            const data = [];
+            
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                if (inputs.length >= 6) {
+                    data.push({
+                        desc: inputs[0].value,
+                        unit: inputs[1].value,
+                        hrs: inputs[2].value,
+                        m1: inputs[3].value,
+                        m2: inputs[4].value,
+                        m3: inputs[5].value
+                    });
+                }
+            });
+            
+            return data;
+        }
+
+        function importData() {
+            document.getElementById('loadModal').classList.add('active');
+        }
+
+        function handleFileSelect(event) {
+            selectedFile = event.target.files[0];
+            if (selectedFile) {
+                document.getElementById('fileName').textContent = `Selected: ${selectedFile.name}`;
+                document.getElementById('loadButton').disabled = false;
+                document.getElementById('loadButton').style.opacity = '1';
+            }
+        }
+
+        function confirmLoad() {
+            if (!selectedFile) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Load header
+                    document.getElementById('section').value = data.header.section;
+                    document.getElementById('manager').value = data.header.manager;
+                    document.getElementById('quarter').value = data.header.quarter;
+                    document.getElementById('year').value = data.header.year;
+
+                    // Clear and load qualified resources
+                    document.getElementById('qualified-resources').innerHTML = '';
+                    data.qualified.resources.forEach(r => addQualifiedRow(r));
+
+                    // Load qualified losses
+                    document.getElementById('q-train-m1').value = data.qualified.losses.train[0];
+                    document.getElementById('q-train-m2').value = data.qualified.losses.train[1];
+                    document.getElementById('q-train-m3').value = data.qualified.losses.train[2];
+                    document.getElementById('q-vac-m1').value = data.qualified.losses.vacation[0];
+                    document.getElementById('q-vac-m2').value = data.qualified.losses.vacation[1];
+                    document.getElementById('q-vac-m3').value = data.qualified.losses.vacation[2];
+
+                    // Clear and load qualified tasks
+                    document.getElementById('qualified-tasks').innerHTML = '';
+                    data.qualified.tasks.forEach(t => addQualifiedTask(t));
+
+                    // Clear and load admin resources
+                    document.getElementById('admin-resources').innerHTML = '';
+                    data.admin.resources.forEach(r => addAdminRow(r));
+
+                    // Load admin losses
+                    document.getElementById('a-train-m1').value = data.admin.losses.train[0];
+                    document.getElementById('a-train-m2').value = data.admin.losses.train[1];
+                    document.getElementById('a-train-m3').value = data.admin.losses.train[2];
+                    document.getElementById('a-vac-m1').value = data.admin.losses.vacation[0];
+                    document.getElementById('a-vac-m2').value = data.admin.losses.vacation[1];
+                    document.getElementById('a-vac-m3').value = data.admin.losses.vacation[2];
+
+                    // Clear and load admin tasks
+                    document.getElementById('admin-tasks').innerHTML = '';
+                    data.admin.tasks.forEach(t => addAdminTask(t));
+
+                    calculate();
+                    closeModal('loadModal');
+                    alert('Data loaded successfully!');
+                } catch (err) {
+                    alert('Error loading file: Invalid JSON format');
+                }
+            };
+            reader.readAsText(selectedFile);
+        }
+
+        function resetToDemo() {
+            document.getElementById('resetModal').classList.add('active');
+        }
+
+        function confirmReset() {
+            document.getElementById('section').value = 'Line Maintenance - KWI';
+            document.getElementById('manager').value = 'John Doe';
+            document.getElementById('quarter').value = 'Q1';
+            document.getElementById('year').value = '2026';
+            
+            document.getElementById('q-train-m1').value = '120';
+            document.getElementById('q-train-m2').value = '160';
+            document.getElementById('q-train-m3').value = '120';
+            document.getElementById('q-vac-m1').value = '60.6';
+            document.getElementById('q-vac-m2').value = '18';
+            document.getElementById('q-vac-m3').value = '60.6';
+            
+            document.getElementById('a-train-m1').value = '176';
+            document.getElementById('a-train-m2').value = '200';
+            document.getElementById('a-train-m3').value = '176';
+            document.getElementById('a-vac-m1').value = '80.84';
+            document.getElementById('a-vac-m2').value = '54.4';
+            document.getElementById('a-vac-m3').value = '80.84';
+            
+            loadDemoData();
+            calculate();
+            closeModal('resetModal');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        if (window.mermaid) {
+            mermaid.initialize({ startOnLoad: true });
+        }
+    </script>
+</body>
+</html>
+Add index.html for GitHub Pages
